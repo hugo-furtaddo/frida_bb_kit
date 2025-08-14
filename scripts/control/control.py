@@ -79,28 +79,31 @@ def main():
         device.enable_spawn_gating()
         device.on("spawn-added", handle_spawn)
 
-    if args.attach or not args.spawn:
-        target = None
-        for p in device.enumerate_processes():
-            if p.identifier == PKG or p.name == PKG:
-                target = p; break
-        if not target:
-            print("[!] process not found:", PKG); sys.exit(1)
-        sess = device.attach(target.pid)
-        load_scripts(sess, scripts)
-        PIDS.add(target.pid)
-    elif args.spawn:
-        pid = device.spawn([PKG])
-        sess = device.attach(pid)
-        load_scripts(sess, scripts)
-        device.resume(pid)
-        PIDS.add(pid)
-
-    print("[+] ready. CTRL+C to exit.")
     try:
+        if args.attach or not args.spawn:
+            target = None
+            for p in device.enumerate_processes():
+                if p.identifier == PKG or p.name == PKG:
+                    target = p; break
+            if not target:
+                print("[!] process not found:", PKG); sys.exit(1)
+            sess = device.attach(target.pid)
+            load_scripts(sess, scripts)
+            PIDS.add(target.pid)
+        elif args.spawn:
+            pid = device.spawn([PKG])
+            sess = device.attach(pid)
+            load_scripts(sess, scripts)
+            device.resume(pid)
+            PIDS.add(pid)
+
+        print("[+] ready. CTRL+C to exit.")
         while True: time.sleep(0.2)
     except KeyboardInterrupt:
         pass
+    finally:
+        if OUT:
+            OUT.close()
 
 if __name__ == "__main__":
     main()
