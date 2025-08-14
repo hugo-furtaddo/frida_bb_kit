@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import frida, sys, argparse, json, time
+import frida, sys, argparse, json, time, os
 
 OUT = None
 PKG = None
@@ -47,7 +47,11 @@ def main():
     if args.outfile:
         OUT = open(args.outfile, "a", encoding="utf-8")
 
-    device = frida.get_usb_device(timeout=5)
+    device_id = os.environ.get("DEVICE_ID")
+    if device_id:
+        device = frida.get_device_manager().get_device(device_id, timeout=5)
+    else:
+        device = frida.get_usb_device(timeout=5)
 
     # Modes
     if args.mode == "aggressive":
