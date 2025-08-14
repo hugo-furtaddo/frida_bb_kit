@@ -29,6 +29,13 @@ bin/hook-java.sh
 . .venv/bin/activate && python scripts/control/control.py -p com.android.settings -s scripts/js/hook_onresume.js --spawn
 ```
 
+## Uso rápido
+Ative o ambiente e faça um hook simples no Settings:
+```bash
+source .venv/bin/activate
+python scripts/control/control.py -p com.android.settings -s scripts/js/hook_onresume.js --spawn
+```
+
 ## Scripts principais
 - `scripts/js/hook_onresume.js`: hook Java para confirmar injeção (onResume).
 - `scripts/js/hook_overload.js`: exemplo de overloads (Class.forName).
@@ -41,6 +48,16 @@ bin/hook-java.sh
 - `bin/frida-up.sh` — empurra e inicia `frida-server` no device.
 - `bin/hook-java.sh` — executa hook mínimo contra Settings.
 - `bin/hook-native.sh` — executa template nativo contra Settings (para demonstração).
+
+## Exemplos
+Inspecionar políticas de rede:
+```bash
+python scripts/control/control.py -p com.android.settings -s scripts/js/network_policy.js --mode recon
+```
+Interceptar chamadas nativas open:
+```bash
+python scripts/control/control.py -p com.android.settings -s scripts/js/native_template.js --spawn
+```
 
 ## Avisos
 - Use **apenas** em ambientes autorizados.
@@ -77,3 +94,13 @@ O controlador pode gravar NDJSON com `--outfile out/sessão.ndjson`. Cada linha 
 - `webview_watch.js`: registra navegações em WebView e pontes JS (quando presentes).
 - `binder_watch.js`: loga códigos de transação em `BinderProxy.transact` (telemetria leve).
 - `native_autoprobe.js`: tenta anexar funções comuns de crypto (boringssl/openssl/mbedtls) se carregadas.
+
+## Solução de problemas
+- `frida.ServerNotRunningError: unable to connect to remote frida-server`
+```bash
+bin/frida-up.sh
+```
+- `frida.ProcessNotFoundError: unable to find process with name 'com.android.settings'`
+```bash
+adb shell pm list packages | grep com.android.settings
+```
