@@ -38,7 +38,9 @@ def main():
     ap.add_argument("--mode", choices=["recon","precision","aggressive"], default="recon")
     ap.add_argument("--outfile", help="Write NDJSON events to file")
     ap.add_argument("--attach", action="store_true", help="Attach to running process")
-    ap.add_argument("--spawn", action="store_true", help="Spawn the package (default)")
+    ap.add_argument("--spawn", dest="spawn", action="store_true", help="Spawn the package")
+    ap.add_argument("--no-spawn", dest="spawn", action="store_false", help="Do not spawn the package")
+    ap.set_defaults(spawn=True)
     ap.add_argument("--spawn-gating", action="store_true", help="Instrument child spawns automatically")
     args = ap.parse_args()
 
@@ -77,7 +79,7 @@ def main():
         device.enable_spawn_gating()
         device.on("spawn-added", handle_spawn)
 
-    if args.attach:
+    if args.attach or not args.spawn:
         target = None
         for p in device.enumerate_processes():
             if p.identifier == PKG or p.name == PKG:
@@ -87,7 +89,7 @@ def main():
         sess = device.attach(target.pid)
         load_scripts(sess, scripts)
         PIDS.add(target.pid)
-    else:
+    elif args.spawn:
         pid = device.spawn([PKG])
         sess = device.attach(pid)
         load_scripts(sess, scripts)
