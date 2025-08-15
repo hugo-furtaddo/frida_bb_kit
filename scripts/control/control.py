@@ -101,12 +101,13 @@ def main():
             sess = device.attach(spawn.pid)
             SESSIONS.append(sess)
             load_scripts(sess, scripts)
-            device.resume(spawn.pid)
             PIDS.add(spawn.pid)
             ident = getattr(spawn, "identifier", "?")
             log_event({"ev":"spawn-attached", "pid": int(spawn.pid), "id": ident})
         except Exception as e:
             print("[spawn-handler-error]", e)
+        finally:
+            device.resume(spawn.pid)
 
     if args.spawn_gating:
         device.enable_spawn_gating()
@@ -130,8 +131,10 @@ def main():
             if not args.spawn_gating:
                 sess = device.attach(pid)
                 SESSIONS.append(sess)
-                load_scripts(sess, scripts)
-                device.resume(pid)
+                try:
+                    load_scripts(sess, scripts)
+                finally:
+                    device.resume(pid)
             PIDS.add(pid)
 
         print("[+] ready. CTRL+C to exit.")
