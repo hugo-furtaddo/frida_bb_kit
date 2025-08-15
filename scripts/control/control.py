@@ -106,6 +106,11 @@ def main():
     finally:
         if OUT:
             OUT.close()
+        if args.spawn_gating:
+            try:
+                device.disable_spawn_gating()
+            except Exception:
+                pass
 
 if __name__ == "__main__":
     main()
