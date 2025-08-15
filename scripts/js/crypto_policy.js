@@ -29,6 +29,16 @@ function bytesToHex(arr, nmax) {
   return out.join("");
 }
 
+function onlySerializable(obj) {
+  var k = Object.keys(obj);
+  for (var i = 0; i < k.length; i++) {
+    var v = obj[k[i]];
+    var t = typeof v;
+    if (t !== "string" && t !== "number" && t !== "boolean" && v !== null) return false;
+  }
+  return true;
+}
+
 Java.perform(function () {
   // Cipher
   try {
@@ -53,7 +63,8 @@ Java.perform(function () {
               inSample: bytesToHex(input, policy.sampleBytes),
               outSample: bytesToHex(out, policy.sampleBytes)});
         if (policy.logStack) {
-          send({ev:"stack", where:"Cipher.doFinal", stack: Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new())});
+          var data = {ev:"stack", where:"Cipher.doFinal", stack: Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new())+""};
+          if (onlySerializable(data)) send(data);
         }
       }
       return out;
