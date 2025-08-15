@@ -42,9 +42,8 @@ function onlySerializable(obj) {
 Java.perform(function () {
   // Cipher
   try {
-    var Cipher = Java.use('javax.crypto.Cipher');
-    var Key = Java.use('java.security.Key');
-    var Arrays = Java.use('java.util.Arrays');
+      var Cipher = Java.use('javax.crypto.Cipher');
+      var Key = Java.use('java.security.Key');
 
     var Cipher_init = Cipher.init.overload('int', 'java.security.Key');
     Cipher_init.implementation = function (opmode, key) {
