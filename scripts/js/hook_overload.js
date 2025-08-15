@@ -1,18 +1,17 @@
-// scripts/js/hook_overload.js
 Java.perform(function () {
   var Cls = Java.use('java.lang.Class');
+  var forName1 = Cls.forName.overload('java.lang.String');
+  var forName2 = Cls.forName.overload('java.lang.String', 'boolean', 'java.lang.ClassLoader');
 
-  Cls.forName.overload('java.lang.String').implementation = function (name) {
-    var out = this.forName(name);
+  forName1.implementation = function (name) {
+    var out = forName1.call(Cls, name);
     send({ev: 'forName(String)', name: name});
     return out;
   };
 
-  Cls.forName.overload('java.lang.String', 'boolean', 'java.lang.ClassLoader')
-    .implementation = function (name, init, loader) {
-      var out = this.forName(name, init, loader);
-      send({ev: 'forName(String,boolean,ClassLoader)', name: name, init: init,
-            loader: loader ? loader.toString() : 'null' });
-      return out;
-    };
+  forName2.implementation = function (name, init, loader) {
+    var out = forName2.call(Cls, name, init, loader);
+    send({ev: 'forName(String,boolean,ClassLoader)', name: name, init: init, loader: loader ? loader.toString() : 'null'});
+    return out;
+  };
 });
