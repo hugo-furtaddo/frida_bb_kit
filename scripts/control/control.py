@@ -26,7 +26,14 @@ def log_event(payload):
             text = str(payload)
             if len(text) > 1024:
                 text = text[:1021] + "..."
-            entry = {"ts": now(), "pkg": PKG, "payload": text}
+            # Preserve campos estruturais mesmo no fallback
+            entry = {"ts": now(), "pkg": PKG}
+            if isinstance(payload, dict):
+                if "pid" in payload:
+                    entry["pid"] = payload["pid"]
+                if "ev" in payload:
+                    entry["ev"] = payload["ev"]
+            entry["payload"] = text
             OUT.write(json.dumps(entry, ensure_ascii=False) + "\n")
         OUT.flush()
 
