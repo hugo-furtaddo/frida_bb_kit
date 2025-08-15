@@ -36,18 +36,18 @@ Java.perform(function () {
     var Key = Java.use('java.security.Key');
     var Arrays = Java.use('java.util.Arrays');
 
-    // init(int, Key)
-    Cipher.init.overload('int', 'java.security.Key').implementation = function (opmode, key) {
+    var Cipher_init = Cipher.init.overload('int', 'java.security.Key');
+    Cipher_init.implementation = function (opmode, key) {
       var algo = this.getAlgorithm();
-      // NUNCA vaze material de chave
+      var ret = Cipher_init.call(this, opmode, key);
       send({ev:"cipher.init", algorithm: algo, opmode: opmode, keyAlgo: key.getAlgorithm()+"", keyFormat: key.getFormat()+""});
-      return this.init(opmode, key);
+      return ret;
     };
 
-    // doFinal(byte[])
-    Cipher.doFinal.overload('[B').implementation = function (input) {
+    var Cipher_doFinal = Cipher.doFinal.overload('[B');
+    Cipher_doFinal.implementation = function (input) {
       var algo = this.getAlgorithm();
-      var out = this.doFinal(input);
+      var out = Cipher_doFinal.call(this, input);
       if (policy.enabled) {
         send({ev:"cipher.doFinal", algorithm: algo,
               inSample: bytesToHex(input, policy.sampleBytes),
@@ -63,13 +63,15 @@ Java.perform(function () {
   // MessageDigest
   try {
     var MD = Java.use('java.security.MessageDigest');
-    MD.getInstance.overload('java.lang.String').implementation = function (alg) {
-      var md = this.getInstance(alg);
+    var MD_getInstance = MD.getInstance.overload('java.lang.String');
+    MD_getInstance.implementation = function (alg) {
+      var md = MD_getInstance.call(MD, alg);
       send({ev:"md.getInstance", algorithm: ""+alg});
       return md;
     };
-    MD.digest.overload('[B').implementation = function (input) {
-      var res = this.digest(input);
+    var MD_digest = MD.digest.overload('[B');
+    MD_digest.implementation = function (input) {
+      var res = MD_digest.call(this, input);
       if (policy.enabled) {
         send({ev:"md.digest", algorithm: ""+this.getAlgorithm(),
               inSample: bytesToHex(input, policy.sampleBytes),
@@ -82,13 +84,15 @@ Java.perform(function () {
   // Mac
   try {
     var Mac = Java.use('javax.crypto.Mac');
-    Mac.getInstance.overload('java.lang.String').implementation = function (alg) {
-      var m = this.getInstance(alg);
+    var Mac_getInstance = Mac.getInstance.overload('java.lang.String');
+    Mac_getInstance.implementation = function (alg) {
+      var m = Mac_getInstance.call(Mac, alg);
       send({ev:"mac.getInstance", algorithm: ""+alg});
       return m;
     };
-    Mac.doFinal.overload('[B').implementation = function (input) {
-      var res = this.doFinal(input);
+    var Mac_doFinal = Mac.doFinal.overload('[B');
+    Mac_doFinal.implementation = function (input) {
+      var res = Mac_doFinal.call(this, input);
       if (policy.enabled) {
         send({ev:"mac.doFinal", algorithm: ""+this.getAlgorithm(),
               inSample: bytesToHex(input, policy.sampleBytes),
@@ -101,13 +105,15 @@ Java.perform(function () {
   // Signature
   try {
     var Sig = Java.use('java.security.Signature');
-    Sig.getInstance.overload('java.lang.String').implementation = function (alg) {
-      var s = this.getInstance(alg);
+    var Sig_getInstance = Sig.getInstance.overload('java.lang.String');
+    Sig_getInstance.implementation = function (alg) {
+      var s = Sig_getInstance.call(Sig, alg);
       send({ev:"sig.getInstance", algorithm: ""+alg});
       return s;
     };
-    Sig.sign.implementation = function () {
-      var res = this.sign();
+    var Sig_sign = Sig.sign.overload();
+    Sig_sign.implementation = function () {
+      var res = Sig_sign.call(this);
       if (policy.enabled) {
         send({ev:"sig.sign", algorithm: ""+this.getAlgorithm(),
               outSample: bytesToHex(res, policy.sampleBytes)});
