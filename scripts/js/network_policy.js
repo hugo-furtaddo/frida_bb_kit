@@ -52,7 +52,16 @@ Java.perform(function () {
             for (var i = 0; i < count; i++) {
               var name = headers.name(i);
               var value = headers.value(i);
-              hdrs[name] = redactHeader(name, value+"");
+              var val = redactHeader(name, value+"");
+              if (hdrs[name]) {
+                if (Array.isArray(hdrs[name])) {
+                  hdrs[name].push(val);
+                } else {
+                  hdrs[name] = [hdrs[name], val];
+                }
+              } else {
+                hdrs[name] = val;
+              }
             }
             send({ev:"okhttp.request", method: method, url: url, host: host, headers: hdrs});
             if (policy.logStack) {
