@@ -53,7 +53,7 @@ Java.perform(function () {
               var name = headers.name(i);
               var value = headers.value(i);
               var val = redactHeader(name, value+"");
-              if (hdrs[name]) {
+              if (Object.prototype.hasOwnProperty.call(hdrs, name)) {
                 if (Array.isArray(hdrs[name])) {
                   hdrs[name].push(val);
                 } else {
