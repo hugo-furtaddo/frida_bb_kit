@@ -9,15 +9,36 @@ def now():
     return time.strftime('%Y-%m-%dT%H:%M:%S')
 
 def log_event(payload):
-    print("[event]", json.dumps(payload, ensure_ascii=False))
+    try:
+        text = json.dumps(payload, ensure_ascii=False)
+    except (TypeError, ValueError):
+        print("[warn] payload not serializable, stored as string")
+        text = str(payload)
+        if len(text) > 1024:
+            text = text[:1021] + "..."
+    print("[event]", text)
     if OUT:
-        OUT.write(json.dumps({"ts": now(), "pkg": PKG, **payload}, ensure_ascii=False) + "\n")
+        try:
+            entry = {**payload, "ts": now(), "pkg": PKG}
+            OUT.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        except (TypeError, ValueError):
+            print("[warn] payload stored as string")
+            text = str(payload)
+            if len(text) > 1024:
+                text = text[:1021] + "..."
+            entry = {"ts": now(), "pkg": PKG, "payload": text}
+            OUT.write(json.dumps(entry, ensure_ascii=False) + "\n")
         OUT.flush()
 
 def on_message(pid, message, data):
     t = message.get("type")
     if t == "send":
-        log_event({"pid": pid, **message["payload"]})
+        payload = message.get("payload")
+        if isinstance(payload, dict):
+            event = {**payload, "pid": pid}
+        else:
+            event = {"pid": pid, "payload": payload}
+        log_event(event)
     elif t == "error":
         print("[error]", message.get("stack", message))
     else:
