@@ -83,8 +83,9 @@ def main():
         if args.attach or not args.spawn:
             target = None
             for p in device.enumerate_processes():
-                if p.identifier == PKG or p.name == PKG:
-                    target = p; break
+                if getattr(p, "identifier", "") == PKG or p.name == PKG:
+                    target = p
+                    break
             if not target:
                 print("[!] process not found:", PKG); sys.exit(1)
             sess = device.attach(target.pid)
