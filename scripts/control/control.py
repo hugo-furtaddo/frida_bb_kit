@@ -92,9 +92,10 @@ def main():
             PIDS.add(target.pid)
         elif args.spawn:
             pid = device.spawn([PKG])
-            sess = device.attach(pid)
-            load_scripts(sess, scripts)
-            device.resume(pid)
+            if not args.spawn_gating:
+                sess = device.attach(pid)
+                load_scripts(sess, scripts)
+                device.resume(pid)
             PIDS.add(pid)
 
         print("[+] ready. CTRL+C to exit.")
