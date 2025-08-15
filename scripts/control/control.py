@@ -14,10 +14,10 @@ def log_event(payload):
         OUT.write(json.dumps({"ts": now(), "pkg": PKG, **payload}, ensure_ascii=False) + "\n")
         OUT.flush()
 
-def on_message(message, data):
+def on_message(pid, message, data):
     t = message.get("type")
     if t == "send":
-        log_event(message["payload"])
+        log_event({"pid": pid, **message["payload"]})
     elif t == "error":
         print("[error]", message.get("stack", message))
     else:
@@ -27,7 +27,7 @@ def load_scripts(session, scripts):
     for path in scripts:
         with open(path, "r", encoding="utf-8") as f:
             s = session.create_script(f.read())
-        s.on("message", on_message)
+        s.on("message", lambda m, d: on_message(session.pid, m, d))
         s.load()
 
 def main():
