@@ -4,6 +4,8 @@ import frida, sys, argparse, json, time, os
 OUT = None
 PKG = None
 PIDS = set()
+SESSIONS = []
+SCRIPTS = []
 
 def now():
     return time.strftime('%Y-%m-%dT%H:%M:%S')
@@ -57,6 +59,8 @@ def load_scripts(session, scripts):
             s = session.create_script(f.read())
         s.on("message", lambda m, d: on_message(session.pid, m, d))
         s.load()
+        SCRIPTS.append(s)
+    return SCRIPTS
 
 def main():
     ap = argparse.ArgumentParser(description="Frida control (spawn/attach, spawn-gating, NDJSON logging)")
@@ -95,6 +99,7 @@ def main():
     def handle_spawn(spawn):
         try:
             sess = device.attach(spawn.pid)
+            SESSIONS.append(sess)
             load_scripts(sess, scripts)
             device.resume(spawn.pid)
             PIDS.add(spawn.pid)
@@ -117,12 +122,14 @@ def main():
             if not target:
                 print("[!] process not found:", PKG); sys.exit(1)
             sess = device.attach(target.pid)
+            SESSIONS.append(sess)
             load_scripts(sess, scripts)
             PIDS.add(target.pid)
         elif args.spawn:
             pid = device.spawn([PKG])
             if not args.spawn_gating:
                 sess = device.attach(pid)
+                SESSIONS.append(sess)
                 load_scripts(sess, scripts)
                 device.resume(pid)
             PIDS.add(pid)
@@ -134,6 +141,11 @@ def main():
     finally:
         if OUT:
             OUT.close()
+        for sess in SESSIONS:
+            try:
+                sess.detach()
+            except Exception:
+                pass
         if args.spawn_gating:
             try:
                 device.disable_spawn_gating()
